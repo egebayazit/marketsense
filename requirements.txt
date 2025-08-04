@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sentence-transformers
+qdrant-client
+httpx
+sqlalchemy
+pydantic
+python-dotenv
+newsapi-python
+yfinance
