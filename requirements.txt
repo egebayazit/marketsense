@@ -8,3 +8,4 @@ pydantic
 python-dotenv
 newsapi-python
 yfinance
+sqlalchemy>=2.0
