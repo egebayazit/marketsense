@@ -1,6 +1,22 @@
+# Environment
 .env
+.venv/
+env/
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# IDE configs
 .vscode/
-data/
 .idea/
+
+# Data (ignore everything inside except .gitkeep)
+data/*
+!data/.gitkeep
+
+# Logs
+*.log
