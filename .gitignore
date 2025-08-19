@@ -26,3 +26,5 @@ data/*
 Thumbs.db
 # Local diagnostics
 _tree.txt
+# Dev reports
+scripts/dev/repo_audit_report.json
