@@ -1,8 +1,11 @@
-﻿from typing import List, Tuple
+﻿# src/db/queries.py
+from typing import List, Tuple
 from sqlalchemy import create_engine, text
+import os
 
-# SQLite DB under data/
-engine = create_engine("sqlite:///data/marketsense.db", future=True)
+# Configurable DB URL; falls back to local SQLite file
+DB_URL = os.getenv("MARKETSENSE_DB_URL", "sqlite:///data/marketsense.db")
+engine = create_engine(DB_URL, future=True)
 
 def get_recent_closes(ticker: str, days: int = 7) -> List[Tuple[str, float]]:
     n = int(days)
