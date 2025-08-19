@@ -1,39 +1,23 @@
-# src/db/db_setup.py
-from pathlib import Path
-from sqlalchemy import (
-    create_engine, MetaData, Table, Column,
-    Integer, String, Date, Float, Text, DateTime
-)
+﻿from pathlib import Path
+import sqlite3
 
-# Ensure /data exists (safe even if it already does)
+# Ensure /data exists
 Path("data").mkdir(exist_ok=True)
 
-# SQLite file under /data
-ENGINE_URL = "sqlite:///data/marketsense.db"
-engine = create_engine(ENGINE_URL, future=True)
-metadata = MetaData()
+DB_PATH = Path("data/marketsense.db")
+MIGRATION = Path("db/sqlite/001_init.sql")
 
-# ---------- tables ----------
-stocks = Table(
-    "stocks", metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("ticker", String(16), index=True, nullable=False),
-    Column("date", Date, index=True, nullable=False),
-    Column("open", Float),
-    Column("close", Float),
-    Column("volume", Integer),
-)
+def main():
+    if not MIGRATION.exists():
+        raise FileNotFoundError(f"Migration not found: {MIGRATION}")
+    sql = MIGRATION.read_text(encoding="utf-8")
+    con = sqlite3.connect(DB_PATH)
+    try:
+        con.executescript(sql)
+        con.commit()
+        print(f"✅ DB initialized from migration -> {DB_PATH}")
+    finally:
+        con.close()
 
-news = Table(
-    "news", metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("ticker", String(16), index=True, nullable=True),  # optional mapping
-    Column("headline", Text, nullable=False),
-    Column("source", String(64)),
-    Column("published_at", DateTime, index=True),
-    Column("url", Text),
-)
-
-# Create tables if they don't exist
-metadata.create_all(engine)
-print("✅ DB ready at data/marketsense.db with tables: stocks, news")
+if __name__ == "__main__":
+    main()
