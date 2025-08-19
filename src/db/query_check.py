@@ -1,25 +1,8 @@
-# src/db/query_check.py
-from sqlalchemy import create_engine, text
+﻿from src.db.queries import get_recent_closes, get_latest_news
 
-engine = create_engine("sqlite:///data/marketsense.db", future=True)
+if __name__ == "__main__":
+    print("\n=== Helper: recent closes AAPL (7) ===")
+    print(get_recent_closes("AAPL", 7))
 
-with engine.connect() as conn:
-    print("=== Latest stocks ===")
-    stocks = conn.execute(text("""
-        SELECT ticker, date, close
-        FROM stocks
-        ORDER BY date DESC, ticker
-        LIMIT 10;
-    """)).fetchall()
-    for r in stocks:
-        print(r)
-
-    print("\n=== Latest news ===")
-    news = conn.execute(text("""
-        SELECT headline, published_at, source
-        FROM news
-        ORDER BY id DESC
-        LIMIT 5;
-    """)).fetchall()
-    for r in news:
-        print(r)
+    print("\n=== Helper: latest news (5) ===")
+    print(get_latest_news(5))
