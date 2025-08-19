@@ -24,3 +24,5 @@ data/*
 # OS
 .DS_Store
 Thumbs.db
+# Local diagnostics
+_tree.txt
