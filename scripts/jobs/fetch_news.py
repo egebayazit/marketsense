@@ -85,25 +85,36 @@ def _is_airflow_container() -> bool:
 def resolve_db_path(cli_db: Optional[str]) -> Path:
     """
     Resolve DB path with precedence:
-      1) --db CLI
-      2) MARKETSENSE_DB env (absolute or relative to repo root)
+      1) --db CLI (file path)
+      2) MARKETSENSE_DB (legacy, file path)
+         or MARKETSENSE_DB_FILE (file path)
+         or MARKETSENSE_DB_URL (if sqlite URL, convert to file path)
       3) default 'data/marketsense.db' under repo root
-
-    In Airflow, repo root is '/opt/marketsense'.
-    Locally, repo root is cwd (where you run the script), i.e. project root.
     """
     root = Path("/opt/marketsense") if _is_airflow_container() else Path.cwd()
-    env_db = os.getenv("MARKETSENSE_DB")
+
+    # Read envs (prefer file paths; accept URL and convert if sqlite)
+    env_db_raw = (
+        os.getenv("MARKETSENSE_DB") or
+        os.getenv("MARKETSENSE_DB_FILE") or
+        os.getenv("MARKETSENSE_DB_URL")
+    )
+
+    def to_path(s: str) -> Path:
+        # If provided as a SQLAlchemy sqlite URL, strip the scheme
+        if isinstance(s, str) and s.startswith("sqlite:///"):
+            s = s.replace("sqlite:///", "", 1)
+        p = Path(s)
+        return p if p.is_absolute() else (root / p)
 
     if cli_db:
-        p = Path(cli_db)
-        return p if p.is_absolute() else (root / p)
+        return to_path(cli_db)
 
-    if env_db:
-        p = Path(env_db)
-        return p if p.is_absolute() else (root / p)
+    if env_db_raw:
+        return to_path(env_db_raw)
 
     return root / DEFAULT_DB_REL
+
 
 
 def ensure_schema(con: sqlite3.Connection) -> None:

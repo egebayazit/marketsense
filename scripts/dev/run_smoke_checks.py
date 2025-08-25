@@ -1,8 +1,7 @@
-﻿import sqlite3
-import pathlib
-import sys
+﻿import sqlite3, pathlib, sys, os
 
-DB = pathlib.Path("data/marketsense.db")
+DB = pathlib.Path(os.getenv("MARKETSENSE_DB_FILE", "data/marketsense.db"))
+
 SQL_PATH = pathlib.Path("tests/sql/smoke_checks.sql")
 
 def run():

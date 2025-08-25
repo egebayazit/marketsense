@@ -1,8 +1,9 @@
-# scripts/dev/check_db.py
 from pathlib import Path
 from sqlalchemy import create_engine, inspect, text
+import os
 
-DB_STR = "sqlite:///data/marketsense.db"
+DB_STR = os.getenv("MARKETSENSE_DB_URL", "sqlite:///data/marketsense.db")
+
 
 print("cwd:", Path().resolve())
 print("DB URL:", DB_STR)
