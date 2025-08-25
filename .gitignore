@@ -28,3 +28,12 @@ Thumbs.db
 _tree.txt
 # Dev reports
 scripts/dev/repo_audit_report.json
+
+
+# Local data & env
+data/
+*.db
+.env
+airflow_local/logs/
+airflow_local/plugins/
+airflow_local/__pycache__/

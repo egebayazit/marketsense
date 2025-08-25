@@ -1,0 +1,78 @@
+version: "3.8"
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: &airflow-env
+    # ---- Core ----
+    AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR:-SequentialExecutor}
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+    # make repo available to tasks
+    PYTHONPATH: /opt/marketsense
+    # pass your NewsAPI key through to tasks
+    NEWS_API_KEY: ${NEWS_API_KEY}
+  user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-0}"
+  working_dir: /opt/airflow
+  volumes:
+    # Airflow home (metadata DB, configs, logs)
+    - airflow_home:/opt/airflow
+    # DAGs from your repo
+    - ../airflow/dags:/opt/airflow/dags
+    # optional logs/plugins
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    # mount the whole repo so BashOperators can run your scripts and see your SQLite DB
+    - ..:/opt/marketsense
+
+services:
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        set -e
+        echo "Migrating metadata DB…"
+        airflow db migrate
+        echo "Creating admin user…"
+        airflow users create \
+          --username admin \
+          --firstname Ege \
+          --lastname Bayazit \
+          --role Admin \
+          --email ege.bayazit@gmail.com \
+          --password admin || true
+        echo "Init done."
+
+
+  scheduler:
+    <<: *airflow-common
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    command: ["airflow", "scheduler"]
+    ports:
+      - "8793:8793"
+
+  webserver:
+    <<: *airflow-common
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    command: ["airflow", "webserver"]
+    ports:
+      - "8080:8080"
+
+  triggerer:
+    <<: *airflow-common
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    command: ["airflow", "triggerer"]
+
+volumes:
+  airflow_home:
