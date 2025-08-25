@@ -1,0 +1,7 @@
+# Airflow‑compatible deps only for ingestion
+pandas>=2.1.2,<2.2
+SQLAlchemy>=1.4.36,<2.0
+yfinance
+newsapi-python
+python-dotenv
+httpx
